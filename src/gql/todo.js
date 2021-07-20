@@ -47,3 +47,51 @@ export const CREATE_TODO_QUERY = gql`
         }
     }
 `
+
+export const TODO_ADDED_SUBSCRIPTION = gql`
+    subscription todoAdded($userId: Float!) {
+        todoAdded(userId: $userId) {
+            id
+            name
+            description
+            isCompleted
+            user {
+                id
+                firstName
+                lastName
+            }
+        }
+    }
+`
+
+export const TODO_EDITED_SUBSCRIPTION = gql`
+    subscription todoEdited($userId: Float!) {
+        todoEdited(userId: $userId) {
+            id
+            name
+            description
+            isCompleted
+            user {
+                id
+                firstName
+                lastName
+            }
+        }
+    }
+`
+
+export const TODO_DELETED_SUBSCRIPTION = gql`
+    subscription todoDeleted {
+        todoDeleted {
+            id
+            name
+            description
+            isCompleted
+            user {
+                id
+                firstName
+                lastName
+            }
+        }
+    }
+`

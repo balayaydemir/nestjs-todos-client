@@ -1,7 +1,20 @@
 import React, { useState } from 'react'
-import { useQuery, useMutation, gql } from '@apollo/client'
-import { FOLDERS_QUERY, CREATE_FOLDER_QUERY, DELETE_FOLDER_QUERY } from '../gql/folder'
-import { CREATE_TODO_QUERY, DELETE_TODO_QUERY, EDIT_TODO_QUERY } from '../gql/todo'
+import {useQuery, useMutation, gql, useSubscription} from '@apollo/client'
+import {
+  FOLDERS_QUERY,
+  CREATE_FOLDER_QUERY,
+  DELETE_FOLDER_QUERY,
+  FOLDER_ADDED_SUBSCRIPTION,
+  FOLDER_DELETED_SUBSCRIPTION,
+} from '../gql/folder'
+import {
+  CREATE_TODO_QUERY,
+  DELETE_TODO_QUERY,
+  EDIT_TODO_QUERY,
+  TODO_ADDED_SUBSCRIPTION,
+  TODO_DELETED_SUBSCRIPTION,
+  TODO_EDITED_SUBSCRIPTION,
+} from '../gql/todo'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { Card } from 'primereact/card'
 import { Button } from 'primereact/button'
@@ -14,6 +27,132 @@ const Home = ({ userId }) => {
   const [folderName, setFolderName] = useState('')
   const [viewFolderId, setViewFolderId] = useState(null)
   const { data, loading } = useQuery(FOLDERS_QUERY)
+  useSubscription(TODO_DELETED_SUBSCRIPTION, {
+    onSubscriptionData(data) {
+      const { client, subscriptionData } = data
+      const { cache } = client
+      if (!subscriptionData.data) return
+      cache.evict({
+        id: `Todo:${subscriptionData.data.todoDeleted.id}`,
+      })
+    }
+  })
+  useSubscription(TODO_EDITED_SUBSCRIPTION, {
+    variables: { userId: parseInt(userId) },
+    onSubscriptionData(data) {
+      const { client, subscriptionData } = data
+      const { cache } = client
+      if (!subscriptionData.data) return
+      cache.writeFragment({
+        id: `Todo:${subscriptionData.data.todoEdited.id}`,
+        data: subscriptionData.data.todoEdited,
+        fragment: gql`
+            fragment EditTodo on Todo {
+                id
+                name
+                description
+                isCompleted
+                user {
+                    id
+                    firstName
+                    lastName
+                }
+            }
+        `
+      })
+    }
+  })
+  useSubscription(TODO_ADDED_SUBSCRIPTION, {
+    variables: { userId: parseInt(userId) },
+    onSubscriptionData(data) {
+      const { client, subscriptionData } = data
+      const { cache } = client
+      if (!subscriptionData.data) return
+      cache.modify({
+        id: `Folder:${viewFolderId}`,
+        fields: {
+          todos(existingTodosRef = [], { readField }) {
+            const newTodoRef = cache.writeFragment({
+              data: subscriptionData.data.todoAdded,
+              fragment: gql`
+                  fragment NewTodo on Todo {
+                      id
+                      name
+                      description
+                      isCompleted
+                      user {
+                          id
+                          firstName
+                          lastName
+                      }
+                  }
+              `
+            })
+
+            if (existingTodosRef.some(
+              ref => readField('id', ref) === subscriptionData.data.todoAdded.id
+            )) {
+              return existingTodosRef
+            }
+
+            return [...existingTodosRef, newTodoRef]
+          }
+        },
+      })
+    }
+  })
+  useSubscription(FOLDER_ADDED_SUBSCRIPTION, {
+    variables: { userId: parseInt(userId) },
+    onSubscriptionData(data) {
+      const { client, subscriptionData } = data
+      const { cache } = client
+      if (!subscriptionData.data) return
+      cache.modify({
+        fields: {
+          getAllFolders(existingFoldersRef = [], { readField }) {
+            const newFolderRef = cache.writeFragment({
+              data: subscriptionData.data.folderAdded,
+              fragment: gql`
+                  fragment NewFolder on Folder {
+                      id
+                      name
+                      todos {
+                          id
+                          name
+                          description
+                          isCompleted
+                          user {
+                              id
+                              firstName
+                              lastName
+                          }
+                      }
+                  }
+              `
+            })
+
+            if (existingFoldersRef.some(
+              ref => readField('id', ref) === subscriptionData.data.folderAdded.id
+            )) {
+              return existingFoldersRef
+            }
+
+            return [...existingFoldersRef, newFolderRef]
+          }
+        }
+      })
+    },
+  })
+  useSubscription(FOLDER_DELETED_SUBSCRIPTION, {
+    onSubscriptionData(data) {
+      const { client, subscriptionData } = data
+      const { cache } = client
+      if (!subscriptionData.data) return
+      cache.evict({
+        id: `Folder:${subscriptionData.data.folderDeleted.id}`,
+      })
+    },
+  })
   const [deleteFolder] = useMutation(DELETE_FOLDER_QUERY, {
     update(cache, { data: { deleteFolder } }) {
       cache.evict({
@@ -128,7 +267,7 @@ const Home = ({ userId }) => {
         <Card
           title={folder.name}
           key={folder.id}
-          style={{ cursor: 'pointer', marginBottom: '2em' }}
+          style={{ marginBottom: '2em' }}
           footer={
             <span>
               <Button
@@ -188,7 +327,7 @@ const Home = ({ userId }) => {
   }
 
   const handleSaveFolder = () => {
-    return createFolder({ variables: { input: { name: folderName } } })
+    return createFolder({ variables: { input: { name: folderName, userId: parseInt(userId) } } })
   }
 
   const renderView = () => {
