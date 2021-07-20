@@ -11,6 +11,8 @@ const SignIn = ({ setUserId }) => {
     onCompleted(data) {
       const { createUser } = data
       sessionStorage.setItem('userId', `${createUser.id}`)
+      sessionStorage.setItem('userFirstName', `${createUser.firstName}`)
+      sessionStorage.setItem('userFirstName', `${createUser.lastName}`)
       setUserId(`${createUser.id}`)
     },
   })

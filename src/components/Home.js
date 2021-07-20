@@ -17,7 +17,7 @@ const Home = ({ userId }) => {
   const [createTodo] = useMutation(CREATE_TODO_QUERY, {
     update(cache, { data: { createTodo } }) {
       cache.modify({
-        id: `Folder${viewFolderId}`,
+        id: `Folder:${viewFolderId}`,
         fields: {
           todos(existingTodos = []) {
             const newTodoRef = cache.writeFragment({
@@ -38,7 +38,8 @@ const Home = ({ userId }) => {
             })
             return [...existingTodos, newTodoRef]
           }
-        }
+        },
+        optimistic: true,
       })
     }
   })
@@ -147,7 +148,28 @@ const Home = ({ userId }) => {
 
   const handleEditTodo = input => editTodo({ variables: { input: { ...input, userId: parseInt(userId) } } })
   const handleDeleteTodo = id => deleteTodo({ variables: { id } })
-  const handleCreateTodo = input => createTodo({ variables: { input: { ...input, userId: parseInt(userId) } } })
+  const handleCreateTodo = input => {
+    const firstName = sessionStorage.getItem('userFirstName')
+    const lastName = sessionStorage.getItem('userFirstName')
+    return createTodo({
+      variables: { input: { ...input, userId: parseInt(userId) } },
+      optimisticResponse: {
+        createTodo: {
+          id: 'temp-id',
+          __typename: 'Todo',
+          name: input.name,
+          description: input.description,
+          isCompleted: false,
+          user: {
+            __typename: 'User',
+            id: userId,
+            firstName,
+            lastName,
+          }
+        }
+      }
+    })
+  }
 
   const handleSaveFolder = () => {
     return createFolder({ variables: { input: { name: folderName } } })

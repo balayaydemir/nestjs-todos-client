@@ -2,9 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { Button } from 'primereact/button'
+import {Dialog} from "primereact/dialog";
+import {InputText} from "primereact/inputtext";
 
-const Folder = ({ folder, handleBack, handleEdit, handleDelete }) => {
+const Folder = ({ folder, handleBack, handleEdit, handleDelete, handleCreate }) => {
   const [rows, setRows] = useState(null)
+  const [openTodoForm, setOpenTodoForm] = useState(false)
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
 
   useEffect(() => {
     const newRows = folder.todos.map(todo => ({
@@ -17,6 +22,12 @@ const Folder = ({ folder, handleBack, handleEdit, handleDelete }) => {
     setRows(newRows)
   }, [folder])
 
+  const handleCloseTodoForm = () => {
+    setOpenTodoForm(false)
+    setName('')
+    setDescription('')
+  }
+
   const getStatusLabel = (status) => {
     switch (status) {
       case true:
@@ -28,6 +39,11 @@ const Folder = ({ folder, handleBack, handleEdit, handleDelete }) => {
       default:
         return 'In progress'
     }
+  }
+
+  const saveTodo = () => {
+    handleCreate({ name, description, folderId: parseInt(folder.id) })
+    handleCloseTodoForm()
   }
 
   const editTodo = (id, completed) => {
@@ -74,12 +90,20 @@ const Folder = ({ folder, handleBack, handleEdit, handleDelete }) => {
 
   const editableTable = (
     <div className='card'>
-      <Button
-        label='Back to folders'
-        icon='pi pi-chevron-left'
-        className='p-button-text'
-        onClick={handleBack}
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', width: '15%' }}>
+        <Button
+          label='Back to folders'
+          icon='pi pi-chevron-left'
+          className='p-button-text'
+          onClick={handleBack}
+        />
+        <Button
+          label='Add new todo'
+          className='p-button-rounded'
+          style={{ margin: '16px 0' }}
+          onClick={() => setOpenTodoForm(true)}
+        />
+      </div>
       <h2>
         {`${folder.name} (${folder.todos.length} todo${folder.todos.length === 1 ? '' :'s'})`}
       </h2>
@@ -93,7 +117,32 @@ const Folder = ({ folder, handleBack, handleEdit, handleDelete }) => {
     </div>
   )
 
-  return <div>{editableTable}</div>
+  return (
+    <div>
+      {editableTable}
+      <Dialog
+        header='Add new todo'
+        visible={openTodoForm}
+        style={{ width: '50vw' }}
+        footer={
+          <div>
+            <Button label='Cancel' icon='pi pi-times' onClick={handleCloseTodoForm} className='p-button-text' />
+            <Button label='Save' disabled={!name || !description} icon='pi pi-check' onClick={saveTodo} autoFocus />
+          </div>
+        }
+        onHide={handleCloseTodoForm}
+      >
+        <span className='p-float-label' style={{marginTop: '28px', width: '100%'}}>
+          <InputText id='name' value={name} onChange={e => setName(e.target.value)}  style={{width: '100%'}} />
+          <label htmlFor='name'>Name</label>
+        </span>
+        <span className='p-float-label' style={{marginTop: '28px', width: '100%'}}>
+          <InputText id='description' value={description} onChange={e => setDescription(e.target.value)}  style={{width: '100%'}} />
+          <label htmlFor='description'>Description</label>
+        </span>
+      </Dialog>
+    </div>
+  )
 }
 
 export default Folder
