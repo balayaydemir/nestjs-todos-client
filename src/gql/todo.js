@@ -11,6 +11,9 @@ export const TODO_BASE_FRAGMENT = gql`
             firstName
             lastName
         }
+        folder {
+            id
+        }
     }
 `
 

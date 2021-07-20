@@ -60,7 +60,7 @@ const Home = ({ userId }) => {
       const { cache } = client
       if (!subscriptionData.data) return
       cache.modify({
-        id: `Folder:${viewFolderId}`,
+        id: `Folder:${subscriptionData.data.todoAdded.folder.id}`,
         fields: {
           todos(existingTodosRef = [], { readField }) {
             const newTodoRef = cache.writeFragment({
@@ -179,8 +179,8 @@ const Home = ({ userId }) => {
 
   const handleDeleteFolder = id => deleteFolder({ variables: { id: parseInt(id) } })
 
-  const createCards = () => {
-    return getAllFolders.map(folder => {
+  const createCards = (folders) => {
+    return folders.map(folder => {
       return (
         <Card
           title={folder.name}
@@ -264,7 +264,7 @@ const Home = ({ userId }) => {
       <>
         <h3>{`Welcome ${sessionStorage.getItem('userFirstName')} ${sessionStorage.getItem('userLastName')}!`}</h3>
         <Button label='Add new folder' className='p-button-rounded' style={{margin: '16px'}} onClick={() => setOpenFolderForm(true)} />
-        {createCards()}
+        {createCards(getAllFolders)}
         <Dialog
           header='Add new folder'
           visible={openFolderForm}
