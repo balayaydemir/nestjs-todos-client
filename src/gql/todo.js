@@ -1,97 +1,69 @@
 import { gql } from '@apollo/client'
 
+export const TODO_BASE_FRAGMENT = gql`
+    fragment TodoBaseFields on Todo {
+        id
+        name
+        description
+        isCompleted
+        user {
+            id
+            firstName
+            lastName
+        }
+    }
+`
+
 export const EDIT_TODO_QUERY = gql`
+    ${TODO_BASE_FRAGMENT}
     mutation editTodo($input: EditTodoInput!) {
         editTodo(input: $input) {
-            id
-            name
-            description
-            isCompleted
-            user {
-                id
-                firstName
-                lastName
-            }
+            ...TodoBaseFields
         }
     }
 `
 
 export const DELETE_TODO_QUERY = gql`
+    ${TODO_BASE_FRAGMENT}
     mutation deleteTodo($id: Float!) {
         deleteTodo(id: $id) {
-            id
-            name
-            description
-            isCompleted
-            user {
-                id
-                firstName
-                lastName
-            }
+            ...TodoBaseFields
         }
     }
 `
 
 export const CREATE_TODO_QUERY = gql`
+    ${TODO_BASE_FRAGMENT}
     mutation createTodo($input: CreateTodoInput!) {
         createTodo(input: $input) {
-            id
-            name
-            description
-            isCompleted
-            user {
-                id
-                firstName
-                lastName
-            }
+            ...TodoBaseFields
         }
     }
 `
 
 export const TODO_ADDED_SUBSCRIPTION = gql`
+    ${TODO_BASE_FRAGMENT}
     subscription todoAdded($userId: Float!) {
         todoAdded(userId: $userId) {
-            id
-            name
-            description
-            isCompleted
-            user {
-                id
-                firstName
-                lastName
-            }
+            ...TodoBaseFields
         }
     }
 `
 
 export const TODO_EDITED_SUBSCRIPTION = gql`
+    ${TODO_BASE_FRAGMENT}
     subscription todoEdited($userId: Float!) {
         todoEdited(userId: $userId) {
-            id
-            name
-            description
-            isCompleted
-            user {
-                id
-                firstName
-                lastName
-            }
+            ...TodoBaseFields
         }
     }
 `
 
 export const TODO_DELETED_SUBSCRIPTION = gql`
+    ${TODO_BASE_FRAGMENT}
     subscription todoDeleted {
         todoDeleted {
-            id
-            name
-            description
-            isCompleted
-            user {
-                id
-                firstName
-                lastName
-            }
+            ...TodoBaseFields
         }
     }
 `

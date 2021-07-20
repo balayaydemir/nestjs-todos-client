@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import {useQuery, useMutation, gql, useSubscription} from '@apollo/client'
+import {useQuery, useMutation, useSubscription} from '@apollo/client'
 import {
   FOLDERS_QUERY,
   CREATE_FOLDER_QUERY,
   DELETE_FOLDER_QUERY,
   FOLDER_ADDED_SUBSCRIPTION,
   FOLDER_DELETED_SUBSCRIPTION,
+  FOLDER_BASE_FRAGMENT,
 } from '../gql/folder'
 import {
   CREATE_TODO_QUERY,
@@ -14,6 +15,7 @@ import {
   TODO_ADDED_SUBSCRIPTION,
   TODO_DELETED_SUBSCRIPTION,
   TODO_EDITED_SUBSCRIPTION,
+  TODO_BASE_FRAGMENT,
 } from '../gql/todo'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { Card } from 'primereact/card'
@@ -46,19 +48,7 @@ const Home = ({ userId }) => {
       cache.writeFragment({
         id: `Todo:${subscriptionData.data.todoEdited.id}`,
         data: subscriptionData.data.todoEdited,
-        fragment: gql`
-            fragment EditTodo on Todo {
-                id
-                name
-                description
-                isCompleted
-                user {
-                    id
-                    firstName
-                    lastName
-                }
-            }
-        `
+        fragment: TODO_BASE_FRAGMENT,
       })
     }
   })
@@ -74,19 +64,7 @@ const Home = ({ userId }) => {
           todos(existingTodosRef = [], { readField }) {
             const newTodoRef = cache.writeFragment({
               data: subscriptionData.data.todoAdded,
-              fragment: gql`
-                  fragment NewTodo on Todo {
-                      id
-                      name
-                      description
-                      isCompleted
-                      user {
-                          id
-                          firstName
-                          lastName
-                      }
-                  }
-              `
+              fragment: TODO_BASE_FRAGMENT,
             })
 
             if (existingTodosRef.some(
@@ -112,23 +90,7 @@ const Home = ({ userId }) => {
           getAllFolders(existingFoldersRef = [], { readField }) {
             const newFolderRef = cache.writeFragment({
               data: subscriptionData.data.folderAdded,
-              fragment: gql`
-                  fragment NewFolder on Folder {
-                      id
-                      name
-                      todos {
-                          id
-                          name
-                          description
-                          isCompleted
-                          user {
-                              id
-                              firstName
-                              lastName
-                          }
-                      }
-                  }
-              `
+              fragment: FOLDER_BASE_FRAGMENT,
             })
 
             if (existingFoldersRef.some(
@@ -168,19 +130,7 @@ const Home = ({ userId }) => {
           todos(existingTodos = []) {
             const newTodoRef = cache.writeFragment({
               data: createTodo,
-              fragment: gql`
-                  fragment NewTodo on Todo {
-                      id
-                      name
-                      description
-                      isCompleted
-                      user {
-                          id
-                          firstName
-                          lastName
-                      }
-                  }
-              `
+              fragment: TODO_BASE_FRAGMENT,
             })
             return [...existingTodos, newTodoRef]
           }
@@ -201,19 +151,7 @@ const Home = ({ userId }) => {
       cache.writeFragment({
         id: `Todo:${editTodo.id}`,
         data: editTodo,
-        fragment: gql`
-            fragment EditTodo on Todo {
-                id
-                name
-                description
-                isCompleted
-                user {
-                    id
-                    firstName
-                    lastName
-                }
-            }
-        `
+        fragment: TODO_BASE_FRAGMENT,
       })
     }
   })
@@ -228,23 +166,7 @@ const Home = ({ userId }) => {
           getAllFolders(existingFolders = []) {
             const newFolderRef = cache.writeFragment({
               data: createFolder,
-              fragment: gql`
-                  fragment NewFolder on Folder {
-                      id
-                      name
-                      todos {
-                          id
-                          name
-                          description
-                          isCompleted
-                          user {
-                              id
-                              firstName
-                              lastName
-                          }
-                      }
-                  }
-              `
+              fragment: FOLDER_BASE_FRAGMENT,
             })
             return [...existingFolders, newFolderRef]
           }
