@@ -37,6 +37,7 @@ const Home = ({ userId }) => {
       cache.evict({
         id: `Todo:${subscriptionData.data.todoDeleted.id}`,
       })
+      cache.gc()
     }
   })
   useSubscription(TODO_EDITED_SUBSCRIPTION, {
@@ -113,6 +114,7 @@ const Home = ({ userId }) => {
       cache.evict({
         id: `Folder:${subscriptionData.data.folderDeleted.id}`,
       })
+      cache.gc()
     },
   })
   const [deleteFolder] = useMutation(DELETE_FOLDER_QUERY, {
@@ -120,6 +122,7 @@ const Home = ({ userId }) => {
       cache.evict({
         id: `Folder:${deleteFolder.id}`,
       })
+      cache.gc()
     }
   })
   const [createTodo] = useMutation(CREATE_TODO_QUERY, {
@@ -144,17 +147,10 @@ const Home = ({ userId }) => {
       cache.evict({
         id: `Todo:${deleteTodo.id}`,
       })
+      cache.gc()
     }
   })
-  const [editTodo] = useMutation(EDIT_TODO_QUERY, {
-    update(cache, { data: { editTodo } }) {
-      cache.writeFragment({
-        id: `Todo:${editTodo.id}`,
-        data: editTodo,
-        fragment: TODO_BASE_FRAGMENT,
-      })
-    }
-  })
+  const [editTodo] = useMutation(EDIT_TODO_QUERY)
   const [createFolder] = useMutation(CREATE_FOLDER_QUERY, {
     onCompleted() {
       setOpenFolderForm(false)
