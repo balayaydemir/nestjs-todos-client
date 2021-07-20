@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, gql } from '@apollo/client'
-import { FOLDERS_QUERY, CREATE_FOLDER_QUERY } from '../gql/folder'
+import { FOLDERS_QUERY, CREATE_FOLDER_QUERY, DELETE_FOLDER_QUERY } from '../gql/folder'
 import { CREATE_TODO_QUERY, DELETE_TODO_QUERY, EDIT_TODO_QUERY } from '../gql/todo'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { Card } from 'primereact/card'
@@ -14,6 +14,13 @@ const Home = ({ userId }) => {
   const [folderName, setFolderName] = useState('')
   const [viewFolderId, setViewFolderId] = useState(null)
   const { data, loading } = useQuery(FOLDERS_QUERY)
+  const [deleteFolder] = useMutation(DELETE_FOLDER_QUERY, {
+    update(cache, { data: { deleteFolder } }) {
+      cache.evict({
+        id: `Folder:${deleteFolder.id}`,
+      })
+    }
+  })
   const [createTodo] = useMutation(CREATE_TODO_QUERY, {
     update(cache, { data: { createTodo } }) {
       cache.modify({
@@ -113,6 +120,8 @@ const Home = ({ userId }) => {
 
   const viewFolder = getAllFolders.find(folder => folder.id === viewFolderId)
 
+  const handleDeleteFolder = id => deleteFolder({ variables: { id: parseInt(id) } })
+
   const createCards = () => {
     return getAllFolders.map(folder => {
       return (
@@ -126,7 +135,14 @@ const Home = ({ userId }) => {
                 label='Open'
                 icon='pi pi-folder-open'
                 className='p-button-outlined p-button-secondary'
+                style={{ marginRight: '8px' }}
                 onClick={() => setViewFolderId(folder.id)}
+              />
+              <Button
+                label='Delete'
+                icon='pi pi-trash'
+                className='p-button-outlined p-button-danger'
+                onClick={() => handleDeleteFolder(folder.id)}
               />
             </span>
           }
@@ -189,7 +205,8 @@ const Home = ({ userId }) => {
     }
     return (
       <>
-        <Button label='Add new folder' className='p-button-rounded' style={{margin: '16px'}} onClick={() => setOpenFolderForm(true)}/>
+        <h3>{`Welcome ${sessionStorage.getItem('userFirstName')} ${sessionStorage.getItem('userLastName')}!`}</h3>
+        <Button label='Add new folder' className='p-button-rounded' style={{margin: '16px'}} onClick={() => setOpenFolderForm(true)} />
         {createCards()}
         <Dialog
           header='Add new folder'

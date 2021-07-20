@@ -84,8 +84,26 @@ const Folder = ({ folder, handleBack, handleEdit, handleDelete, handleCreate }) 
     )
   }
 
-  const statusBodyTemplate = (rowData) => {
-    return getStatusLabel(rowData.isCompleted)
+  const statusDefaultStyles = {
+    borderRadius: '2px',
+    padding: '.25em .5rem',
+    textTransform: 'uppercase',
+    fontWeight: 700,
+    fontSize: '12px',
+    letterSpacing: '.3px',
+  }
+
+  const statusBodyTemplate = rowData => {
+    return (
+      <span
+        style={rowData.isCompleted
+          ? { backgroundColor: '#C8E6C9', color: '#256029', ...statusDefaultStyles }
+          : { backgroundColor: '#FFCDD2', color: '#C63737', ...statusDefaultStyles }
+        }
+      >
+        {getStatusLabel(rowData.isCompleted)}
+      </span>
+    )
   }
 
   const editableTable = (

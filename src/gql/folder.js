@@ -20,6 +20,26 @@ export const FOLDERS_QUERY = gql`
     }
 `
 
+export const DELETE_FOLDER_QUERY = gql`
+    mutation deleteFolder($id: Float!) {
+        deleteFolder(id: $id) {
+            id
+            name
+            todos {
+                id
+                name
+                description
+                isCompleted
+                user {
+                    id
+                    firstName
+                    lastName
+                }
+            }
+        }
+    }
+`
+
 export const CREATE_FOLDER_QUERY = gql`
     mutation createFolder($input: CreateFolderInput!) {
         createFolder(input: $input) {
